@@ -6,6 +6,7 @@ COPY . .
 
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Lets Koyeb know we are exposing this port for FastAPI health check
 EXPOSE 8080
 
-CMD ["uvicorn", "bot:app", "--host", "0.0.0.0", "--port", "8080"]
+CMD ["python3", "bot.py"]
