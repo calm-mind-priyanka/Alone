@@ -1,4 +1,4 @@
-# FULL FIXED FLOOD-SAFE CODE
+# ---------------- FULL FIXED FLOOD-SAFE BOT CODE ----------------
 from telethon import TelegramClient, events
 from telethon.sessions import StringSession
 from telethon.errors import ChatWriteForbiddenError, FloodWaitError
@@ -10,11 +10,14 @@ import logging
 logging.basicConfig(level=logging.INFO, filename="error.log", filemode="a",
                     format="%(asctime)s - %(levelname)s - %(message)s")
 
+# ---------------- FastAPI for Koyeb health check ----------------
 app = FastAPI()
+
 @app.get("/")
 async def root():
     return {"status": "Bot is alive!"}
 
+# Run FastAPI in a separate thread
 threading.Thread(target=lambda: uvicorn.run(app, host="0.0.0.0", port=8080), daemon=True).start()
 
 # ---------------- Bot Credentials ----------------
@@ -46,14 +49,19 @@ def load_data(groups_file, settings_file, default_msg):
             d.get("reply_gap", 30),
             d.get("pm_msg", None)
         )
-    except: return groups, default_msg, 15, 30, None
+    except:
+        return groups, default_msg, 15, 30, None
 
-def save_groups(path, groups): json.dump(list(groups), open(path, "w"))
-def save_settings(path, msg, d, g, pm_msg): json.dump({"reply_msg": msg, "delete_delay": d, "reply_gap": g, "pm_msg": pm_msg}, open(path, "w"))
+def save_groups(path, groups):
+    json.dump(list(groups), open(path, "w"))
+
+def save_settings(path, msg, d, g, pm_msg):
+    json.dump({"reply_msg": msg, "delete_delay": d, "reply_gap": g, "pm_msg": pm_msg}, open(path, "w"))
 
 # ---------------- Load Settings ----------------
 groups1, msg1, delay1, gap1, pm_msg1 = load_data(GROUPS_FILE1, SETTINGS_FILE1, "🤖 Bot1 here!")
 groups2, msg2, delay2, gap2, pm_msg2 = load_data(GROUPS_FILE2, SETTINGS_FILE2, "👥 Bot2 here!")
+
 last_reply1, last_reply2 = {}, {}  # per-user last reply timestamp
 flood_active1 = False
 flood_active2 = False
@@ -74,11 +82,15 @@ async def safe_reply(client, chat_id, user_id, msg, last_reply, gap, flood_flag_
             await asyncio.sleep(delay1 if client==client1 else delay2)
             await m.delete()
     except FloodWaitError as e:
-        if flood_flag_name == "flood_active1": flood_active1 = True
-        else: flood_active2 = True
-        await asyncio.sleep(e.seconds)  # wait required seconds
-        if flood_flag_name == "flood_active1": flood_active1 = False
-        else: flood_active2 = False
+        if flood_flag_name == "flood_active1":
+            flood_active1 = True
+        else:
+            flood_active2 = True
+        await asyncio.sleep(e.seconds)
+        if flood_flag_name == "flood_active1":
+            flood_active1 = False
+        else:
+            flood_active2 = False
     except ChatWriteForbiddenError:
         pass
     except Exception as e:
@@ -90,7 +102,8 @@ async def bot1_handler(event):
     global flood_active1
     if event.is_private and pm_msg1:
         m = await event.reply(pm_msg1)
-        await asyncio.sleep(60); await m.delete()
+        await asyncio.sleep(60)
+        await m.delete()
     elif event.chat_id in groups1 and not event.sender.bot:
         if flood_active1:
             return
@@ -101,7 +114,8 @@ async def bot2_handler(event):
     global flood_active2
     if event.is_private and pm_msg2:
         m = await event.reply(pm_msg2)
-        await asyncio.sleep(60); await m.delete()
+        await asyncio.sleep(60)
+        await m.delete()
     elif event.chat_id in groups2 and not event.sender.bot:
         if flood_active2:
             return
@@ -111,17 +125,20 @@ async def bot2_handler(event):
 def admin_handler(client, event, admin_id, groups, settings_file):
     global msg1, msg2, delay1, delay2, gap1, gap2, pm_msg1, pm_msg2
     txt = event.raw_text.strip()
-    if event.sender_id != admin_id: return
+    if event.sender_id != admin_id:
+        return
     if event.is_private:
         if txt.startswith("/addgroup"):
             try: gid = int(txt.split(" ",1)[1])
             except: return asyncio.create_task(event.reply("❌ Usage: /addgroup -100xxxx"))
-            groups.add(gid); save_groups(settings_file.replace("settings","groups"), groups)
+            groups.add(gid)
+            save_groups(settings_file.replace("settings","groups"), groups)
             return asyncio.create_task(event.reply(f"✅ Added {gid}"))
         elif txt.startswith("/removegroup"):
             try: gid = int(txt.split(" ",1)[1])
             except: return asyncio.create_task(event.reply("❌ Usage: /removegroup -100xxxx"))
-            groups.discard(gid); save_groups(settings_file.replace("settings","groups"), groups)
+            groups.discard(gid)
+            save_groups(settings_file.replace("settings","groups"), groups)
             return asyncio.create_task(event.reply(f"❌ Removed {gid}"))
         elif txt.startswith("/setmsgpm "):
             if client==client1: pm_msg1 = txt.split(" ",1)[1]
@@ -139,4 +156,12 @@ def admin_handler(client, event, admin_id, groups, settings_file):
                           gap1 if client==client1 else gap2,
                           pm_msg1 if client==client1 else pm_msg2)
             return asyncio.create_task(event.reply("❌ PM auto-reply turned off."))
-    # general admin commands
+
+# ---------------- Start Clients ----------------
+async def start_clients():
+    await client1.start()
+    await client2.start()
+    print("✅ Bots are running...")
+    await asyncio.gather(client1.run_until_disconnected(), client2.run_until_disconnected())
+
+asyncio.get_event_loop().run_until_complete(start_clients())
