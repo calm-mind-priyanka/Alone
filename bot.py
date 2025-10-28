@@ -13,7 +13,7 @@ from contextlib import asynccontextmanager
 API_ID = int(os.getenv("API_ID", "24222039"))
 API_HASH = os.getenv("API_HASH", "6dd2dc70434b2f577f76a2e993135662")
 BOT_TOKEN = os.getenv("BOT_TOKEN", "8259426500:AAHclWJUNaMZ9XLhWx7M27jxrKxnPijyyaw")
-ADMIN_ID = os.getenv("ADMIN_ID")
+ADMIN_ID = os.getenv("ADMIN_ID", "6046055058")
 DELAY = float(os.getenv("DELAY", 1.2))
 BATCH_SIZE = int(os.getenv("BATCH_SIZE", 5000))
 REST_MINUTES = int(os.getenv("REST_MINUTES", 10))
