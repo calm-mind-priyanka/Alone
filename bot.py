@@ -168,6 +168,48 @@ async def start_cmd(event):
     ]
     await event.respond(text, buttons=buttons)
 
+# ---------------- Admin Text Commands ----------------
+@client.on(events.NewMessage(pattern=r"^/setsource (.+)$"))
+async def set_source_cmd(event):
+    if not is_admin(event.sender_id):
+        return await event.reply("🚫 You are not authorized.")
+    src = event.pattern_match.group(1)
+    config["source"] = src
+    save_json(CONFIG_FILE, config)
+    await event.reply(f"✅ Source chat set to: `{src}`")
+
+@client.on(events.NewMessage(pattern=r"^/settarget (.+)$"))
+async def set_target_cmd(event):
+    if not is_admin(event.sender_id):
+        return await event.reply("🚫 You are not authorized.")
+    tgt = event.pattern_match.group(1)
+    config["target"] = tgt
+    save_json(CONFIG_FILE, config)
+    await event.reply(f"✅ Target chat set to: `{tgt}`")
+
+@client.on(events.NewMessage(pattern=r"^/setadmin (.+)$"))
+async def set_admin_cmd(event):
+    if not is_admin(event.sender_id):
+        return await event.reply("🚫 You are not authorized.")
+    adm = event.pattern_match.group(1)
+    config["admin"] = adm
+    save_json(CONFIG_FILE, config)
+    await event.reply(f"✅ Admin set to: `{adm}`")
+
+@client.on(events.NewMessage(pattern=r"^/status$"))
+async def status_cmd(event):
+    if not is_admin(event.sender_id):
+        return await event.reply("🚫 You are not authorized.")
+    msg = (
+        f"📊 **Status**\n"
+        f"Running: {is_running}\nPaused: {is_paused}\n"
+        f"Forwarded: {forwarded_count}\nUptime: {uptime_str()}\n"
+        f"Source: {config.get('source')}\n"
+        f"Target: {config.get('target')}\n"
+        f"Last ID: {last_processed_id}"
+    )
+    await event.reply(msg)
+
 @client.on(events.CallbackQuery)
 async def cb_handler(event):
     global is_running, is_paused, _stop_signal
