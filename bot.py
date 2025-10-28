@@ -9,9 +9,9 @@ import uvicorn
 from telethon import TelegramClient, events, Button, errors
 
 # ---------------- Config (env or default) ----------------
-API_ID = int(os.getenv("API_ID", "0"))           # set in Koyeb or here
-API_HASH = os.getenv("API_HASH", "")
-BOT_TOKEN = os.getenv("BOT_TOKEN", "")
+API_ID = int(os.getenv("API_ID", "24222039"))           # set in Koyeb or here
+API_HASH = os.getenv("API_HASH", "6dd2dc70434b2f577f76a2e993135662")
+BOT_TOKEN = os.getenv("BOT_TOKEN", "8259426500:AAHclWJUNaMZ9XLhWx7M27jxrKxnPijyyaw")
 ADMIN_ID = os.getenv("ADMIN_ID")                 # optional: numeric Telegram user id string
 DELAY = float(os.getenv("DELAY", 1.2))          # seconds between forwards
 BATCH_SIZE = int(os.getenv("BATCH_SIZE", 5000)) # triggers rest
